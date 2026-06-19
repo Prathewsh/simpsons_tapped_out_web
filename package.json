@@ -1,0 +1,9 @@
+{
+  "name": "simpsons-tapped-out-web",
+  "private": true,
+  "scripts": {
+    "build": "bash build.sh",
+    "dev": "bash build.sh && npx -y serve web -p 3000",
+    "serve": "npx -y serve web -p 3000"
+  }
+}

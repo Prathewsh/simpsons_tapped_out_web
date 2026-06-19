@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="The Simpsons: Tapped Out — fan recreation in Rust + WebAssembly" />
+  <title>The Simpsons: Tapped Out</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style_tasks.css" />
+</head>
+<body>
+  <div id="ui-overlay">
+    <header id="hud">
+      <div class="hud-left">
+        <span id="currency-donuts" class="hud-item">🍩 <span id="donut-count">0</span></span>
+        <span id="currency-cash"  class="hud-item">💵 <span id="cash-count">0</span></span>
+      </div>
+      <div class="hud-center">
+        <h1 id="game-title">Springfield</h1>
+      </div>
+      <div class="hud-right">
+        <button id="btn-build" class="hud-btn" title="Build">🏗</button>
+        <button id="btn-store" class="hud-btn" title="Store">🛒</button>
+        <button id="btn-tasks" class="hud-btn" title="Tasks">📋</button>
+      </div>
+    </header>
+  </div>
+
+  <canvas id="game-canvas"></canvas>
+
+  <div id="loading-screen">
+    <div class="loading-inner">
+      <div class="loading-donut">🍩</div>
+      <p class="loading-text">Loading Springfield…</p>
+      <div class="loading-bar-track"><div id="loading-bar" class="loading-bar-fill"></div></div>
+    </div>
+  </div>
+
+  <div id="task-selector-menu" class="task-menu hidden">
+    <div class="task-menu-header">Homer Simpson</div>
+    <div class="task-item" data-task="clean">
+      <span>Clean Up Springfield</span>
+      <span class="task-time">6s</span>
+    </div>
+    <div class="task-item" data-task="play">
+      <span>Play with myPad</span>
+      <span class="task-time">12s</span>
+    </div>
+    <div class="task-item" data-task="drink">
+      <span>Drink Beer</span>
+      <span class="task-time">20s</span>
+    </div>
+  </div>
+
+  <div id="reward-notification-toast" class="reward-toast">
+    <span id="toast-icon">🍩</span>
+    <span id="toast-message">Job Complete! +$50, +10 XP</span>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
