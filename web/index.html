@@ -11,22 +11,77 @@
   <link rel="stylesheet" href="style_tasks.css" />
 </head>
 <body>
+
   <div id="ui-overlay">
-    <header id="hud">
-      <div class="hud-left">
-        <span id="currency-donuts" class="hud-item">🍩 <span id="donut-count">0</span></span>
-        <span id="currency-cash"  class="hud-item">💵 <span id="cash-count">0</span></span>
+
+    <!-- Tap to Start (shown only during menu state) -->
+    <button id="tap-to-start">TAP TO START</button>
+
+    <!-- Game HUD (hidden during menu, shown when playing) -->
+    <div id="game-hud" class="hidden">
+
+      <!-- Character Tray: fixed panel, expands upward above the book button -->
+      <div id="character-tray">
+        <div class="tray-inner">
+          <div id="char-card-homer" class="char-card active-char">
+            <div class="char-avatar-wrapper">
+              <img src="assets/Characters/Homer/Idle/homer_idle_image_1.png" alt="Homer" class="char-avatar" />
+            </div>
+            <div class="char-label">Homer</div>
+            <div class="char-status-bubble">!</div>
+          </div>
+          <div id="char-card-bart" class="char-card active-char">
+            <div class="char-avatar-wrapper">
+              <img src="assets/Characters/Bart/Idle/bart_idle_image_1.png" alt="Bart" class="char-avatar" />
+            </div>
+            <div class="char-label">Bart</div>
+            <div class="char-status-bubble">!</div>
+          </div>
+        </div>
       </div>
-      <div class="hud-center">
-        <h1 id="game-title">Springfield</h1>
+
+      <!-- Bottom Left HUD Dashboard -->
+      <div id="hud-bottom-left">
+        <div id="quest-book-btn" class="quest-book-wrapper">
+          <div class="quest-book">📓</div>
+          <div class="quest-badge">2</div>
+        </div>
+        <div class="xp-level-container">
+          <div class="level-badge">Level 6</div>
+          <div class="xp-bar-wrapper">
+            <span class="xp-label">XP <span id="xp-current">364</span>/800</span>
+            <div class="xp-bar-fill" style="width: 45.5%;"></div>
+          </div>
+          <div class="currency-container">
+            <div class="currency-item">
+              <span class="currency-icon">💵</span>
+              <span id="cash-count">0</span>
+            </div>
+            <div class="currency-item">
+              <span class="currency-icon">🍩</span>
+              <span id="donut-count">10</span>
+            </div>
+            <button class="btn-get-more">Get More</button>
+          </div>
+        </div>
       </div>
-      <div class="hud-right">
-        <button id="btn-build" class="hud-btn" title="Build">🏗</button>
-        <button id="btn-store" class="hud-btn" title="Store">🛒</button>
-        <button id="btn-tasks" class="hud-btn" title="Tasks">📋</button>
+
+      <!-- Bottom Right HUD Actions -->
+      <div id="hud-bottom-right">
+        <button id="btn-census" class="action-btn census-btn" title="Town Census">
+          <span class="btn-icon">👥</span>
+        </button>
+        <button id="btn-move" class="action-btn move-btn" title="Move Mode">
+          <span class="btn-icon">✥</span>
+        </button>
+        <button id="btn-build-shop" class="action-btn shop-btn" title="Build &amp; Shop">
+          <span class="btn-icon">🛠️</span>
+        </button>
       </div>
-    </header>
-  </div>
+
+    </div><!-- /#game-hud -->
+
+  </div><!-- /#ui-overlay -->
 
   <canvas id="game-canvas"></canvas>
 
@@ -50,6 +105,22 @@
     </div>
     <div class="task-item" data-task="drink">
       <span>Drink Beer</span>
+      <span class="task-time">20s</span>
+    </div>
+  </div>
+
+  <div id="bart-task-selector-menu" class="task-menu hidden">
+    <div class="task-menu-header">Bart Simpson</div>
+    <div class="task-item" data-task="skateboard">
+      <span>Ride Skateboard</span>
+      <span class="task-time">6s</span>
+    </div>
+    <div class="task-item" data-task="slingshot">
+      <span>Shoot Slingshot</span>
+      <span class="task-time">12s</span>
+    </div>
+    <div class="task-item" data-task="play_simulator">
+      <span>Play Yard Work Simulator</span>
       <span class="task-time">20s</span>
     </div>
   </div>

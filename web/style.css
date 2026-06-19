@@ -34,65 +34,354 @@ html, body {
   z-index: 10;
 }
 
-/* ── HUD ── */
-#hud {
+/* ── Tap to Start button ── */
+#tap-to-start {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
   pointer-events: all;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  background: var(--hud-bg);
-  backdrop-filter: var(--hud-blur);
-  -webkit-backdrop-filter: var(--hud-blur);
-  border-bottom: 2px solid rgba(255,215,0,0.3);
-}
-
-.hud-left, .hud-right {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.hud-item {
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 999px;
-  padding: 4px 14px;
-  color: var(--yellow);
-  font-weight: 600;
-  font-size: 0.9rem;
-  letter-spacing: 0.03em;
-}
-
-#game-title {
   font-family: 'Bangers', cursive;
-  font-size: 1.8rem;
-  color: var(--yellow);
-  letter-spacing: 0.08em;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(255,215,0,0.4);
+  font-size: 1.6rem;
+  letter-spacing: 0.12em;
+  color: #fff;
+  background: linear-gradient(180deg, #f5a623, #e07b00);
+  border: 3px solid #fff;
+  border-radius: 14px;
+  padding: 12px 40px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 24px rgba(245,166,35,0.4);
+  animation: pulse-btn 1.8s ease-in-out infinite;
+  transition: transform 0.1s;
+  z-index: 20;
+}
+#tap-to-start:hover {
+  transform: translateX(-50%) scale(1.05);
+}
+#tap-to-start:active {
+  transform: translateX(-50%) scale(0.96);
+}
+@keyframes pulse-btn {
+  0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 20px rgba(245,166,35,0.3); }
+  50%       { box-shadow: 0 6px 28px rgba(0,0,0,0.6), 0 0 36px rgba(245,166,35,0.6); }
 }
 
-.hud-btn {
-  background: rgba(255,255,255,0.12);
-  border: 1.5px solid rgba(255,255,255,0.25);
-  border-radius: var(--radius);
-  width: 40px;
-  height: 40px;
-  font-size: 1.2rem;
+/* ── Game HUD wrapper ── */
+#game-hud {
+  pointer-events: none; /* children opt-in individually */
+}
+#game-hud.hidden {
+  display: none;
+}
+
+
+/* ── Character Tray (expands upward from book) ── */
+#character-tray {
+  position: fixed;
+  left: 16px;
+  bottom: 100px;         /* sits just above the HUD row */
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: max-height 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity    0.22s ease;
+  z-index: 20;
+}
+
+#character-tray.open {
+  max-height: 600px;
+  opacity: 1;
+  pointer-events: all;
+}
+
+.tray-inner {
+  display: flex;
+  flex-direction: column;   /* cards stack vertically */
+  gap: 10px;
+  padding: 10px;
+  background: linear-gradient(180deg, rgba(20,22,26,0.97), rgba(12,14,18,0.98));
+  border: 3px solid #ffde17;
+  border-bottom: none;       /* connects to the book button below */
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -4px 18px rgba(0,0,0,0.7);
+}
+
+.char-card {
+  position: relative;
+  width: 72px;
+  height: 82px;
+  background: linear-gradient(135deg, #1f2326, #15181b);
+  border: 2px solid #3a3f47;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  flex-shrink: 0;
+}
+
+.char-card:hover {
+  transform: scale(1.08) translateY(-3px);
+  border-color: #ffde17;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.7), 0 0 10px rgba(255,222,23,0.3);
+}
+
+.char-avatar-wrapper {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 7px 7px 0 0;
+}
+
+.char-avatar {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+}
+
+.char-label {
+  width: 100%;
+  text-align: center;
+  font-family: 'Bangers', cursive;
+  font-size: 0.72rem;
+  color: #d0d4db;
+  letter-spacing: 0.06em;
+  padding: 2px 0 3px;
+  border-top: 1px solid #2b2f36;
+}
+
+.char-status-bubble {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  background: #ffffff;
+  color: #e65c00;
+  border: 2px solid #e65c00;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-family: 'Bangers', cursive;
+  font-size: 0.9rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+
+/* ── Bottom Left HUD ── */
+#hud-bottom-left {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: all;
+  z-index: 10;
+}
+
+.quest-book-wrapper {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #2b303c, #1a1c23);
+  border: 3px solid #ffde17;
+  border-top: none;          /* top merges with tray border */
+  border-radius: 0 0 14px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  z-index: 21;
+}
+.quest-book-wrapper:not(.tray-open) {
+  border-radius: 14px;
+  border-top: 3px solid #ffde17;
+}
+.quest-book-wrapper:hover {
+  background: linear-gradient(135deg, #363c4a, #1e2530);
+}
+
+.quest-book {
+  font-size: 2rem;
+  transition: transform 0.3s ease;
+}
+.quest-book-wrapper.tray-open .quest-book {
+  transform: rotate(-10deg) scale(1.1);
+}
+
+
+
+.quest-badge {
+  position: absolute;
+  bottom: -4px;
+  left: -4px;
+  background: #ff5722;
   color: white;
+  border: 2.5px solid white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-family: 'Bangers', cursive;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+}
+
+.xp-level-container {
+  background: rgba(12, 14, 16, 0.9);
+  border: 3px solid #2d3238;
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 280px;
+}
+
+.level-badge {
+  font-family: 'Bangers', cursive;
+  font-size: 1.3rem;
+  color: #ffde17;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.xp-bar-wrapper {
+  position: relative;
+  width: 100%;
+  height: 20px;
+  background: #14171a;
+  border: 2px solid #3e444d;
+  border-radius: 4px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.hud-btn:hover {
-  background: rgba(255,255,255,0.22);
-  transform: translateY(-1px);
+
+.xp-bar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, #38b6ff, #0070c0);
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.4);
 }
-.hud-btn:active {
-  transform: scale(0.93);
+
+.xp-label {
+  position: relative;
+  z-index: 2;
+  color: white;
+  font-family: 'Bangers', cursive;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.9);
 }
+
+.currency-container {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 2px;
+}
+
+.currency-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Bangers', cursive;
+  font-size: 1.25rem;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.currency-icon {
+  font-size: 1.35rem;
+}
+
+.btn-get-more {
+  background: linear-gradient(180deg, #ec407a, #d81b60);
+  border: 2px solid #ffffff;
+  border-radius: 6px;
+  color: white;
+  font-family: 'Bangers', cursive;
+  font-size: 1rem;
+  padding: 3px 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(216,27,96,0.4);
+  transition: transform 0.15s, background 0.15s;
+  letter-spacing: 0.03em;
+}
+.btn-get-more:hover {
+  background: linear-gradient(180deg, #f48fb1, #ad1457);
+  transform: scale(1.04);
+}
+.btn-get-more:active {
+  transform: scale(0.96);
+}
+
+/* ── Bottom Right HUD Actions ── */
+#hud-bottom-right {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 12px;
+  pointer-events: all;
+  z-index: 10;
+}
+
+.action-btn {
+  width: 68px;
+  height: 68px;
+  border-radius: 14px;
+  border: 3px solid #ffde17;
+  background: linear-gradient(135deg, #2d3238, #15181b);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.action-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.8), 0 0 8px rgba(255,222,23,0.3);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+.btn-icon {
+  font-size: 1.9rem;
+}
+
 
 /* ── Loading screen ── */
 #loading-screen {

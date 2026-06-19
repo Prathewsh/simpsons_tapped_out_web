@@ -27,6 +27,21 @@ pub struct Game {
     homer_target_y: f32,
     homer_scale: f32,
     homer_facing_left: bool,
+    
+    // Bart state
+    bart_animations: HashMap<String, Animation>,
+    bart_state: AnimationState,
+    bart_x: f32,
+    bart_y: f32,
+    bart_target_x: f32,
+    bart_target_y: f32,
+    bart_scale: f32,
+    bart_facing_left: bool,
+    bart_current_job: Option<String>,
+    bart_job_timer_ms: f64,
+    bart_job_duration_ms: f64,
+    bart_wander_timer_ms: f64,
+
     state: GameState,
     
     // Auto-wandering & Chores state
@@ -56,9 +71,13 @@ impl Game {
         let input = InputState::new();
         let animations = crate::sprite::homer_animations();
         let homer_state = AnimationState::new("idle");
+        let bart_animations = crate::sprite::bart_animations();
+        let bart_state = AnimationState::new("idle");
 
-        let cx = canvas.width() as f32 / 2.0 - 50.0;
+        let cx = canvas.width() as f32 / 2.0 - 100.0;
         let cy = canvas.height() as f32 / 2.0 - 80.0;
+        let bx = canvas.width() as f32 / 2.0 + 100.0;
+        let by = canvas.height() as f32 / 2.0 - 80.0;
 
         Ok(Game {
             canvas,
@@ -75,6 +94,18 @@ impl Game {
             homer_target_y: cy,
             homer_scale: 0.5,
             homer_facing_left: false,
+            bart_animations,
+            bart_state,
+            bart_x: bx,
+            bart_y: by,
+            bart_target_x: bx,
+            bart_target_y: by,
+            bart_scale: 0.45, // Bart is slightly smaller than Homer
+            bart_facing_left: false,
+            bart_current_job: None,
+            bart_job_timer_ms: 0.0,
+            bart_job_duration_ms: 0.0,
+            bart_wander_timer_ms: 0.0,
             state: GameState::Menu,
             homer_current_job: None,
             homer_job_timer_ms: 0.0,
@@ -128,19 +159,9 @@ impl Game {
                     self.renderer.draw_sprite_stretched(&self.gl, tex, 0.0, 0.0, w, h);
                 }
 
-                // Draw centered logo (foreground)
-                if let Some(tex) = self.textures.get("menu_fg") {
-                    // Target width 50% of screen width, keep aspect ratio
-                    let fg_w = w * 0.45;
-                    let aspect = tex.height as f32 / tex.width as f32;
-                    let fg_h = fg_w * aspect;
-                    let fg_x = (w - fg_w) / 2.0;
-                    let fg_y = (h - fg_h) / 3.0; // Place slightly above absolute center
-                    self.renderer.draw_sprite_stretched(&self.gl, tex, fg_x, fg_y, fg_w, fg_h);
-                }
             }
             GameState::Playing => {
-                // Handle active job timers
+                // Handle active job timers for Homer
                 let mut completed_job = None;
                 if let Some(ref job) = self.homer_current_job {
                     self.homer_job_timer_ms += delta_ms;
@@ -152,11 +173,9 @@ impl Game {
                 }
 
                 if let Some(job) = completed_job {
-                    // Complete Job!
                     self.homer_current_job = None;
                     self.homer_state.set_animation("idle");
                     
-                    // Give reward!
                     if job == "clean" {
                         self.cash += 50;
                     } else if job == "play" {
@@ -165,16 +184,14 @@ impl Game {
                         self.cash += 150;
                     }
                     
-                    // Notify JS of completion
                     trigger_reward_toast(&job, self.cash);
                 } else if self.homer_current_job.is_none() {
-                    // Move Homer toward target or wander
                     let dx = self.homer_target_x - self.homer_x;
                     let dy = self.homer_target_y - self.homer_y;
                     let dist = (dx * dx + dy * dy).sqrt();
 
                     if dist > 5.0 {
-                        let speed = 120.0; // pixel/sec walk speed
+                        let speed = 120.0;
                         let step = speed * (delta_ms as f32 / 1000.0);
                         let ratio = step.min(dist) / dist;
                         self.homer_x += dx * ratio;
@@ -196,11 +213,9 @@ impl Game {
                     } else {
                         self.homer_state.set_animation("idle");
 
-                        // Auto-wander routine when idle
                         self.wander_timer_ms += delta_ms;
                         if self.wander_timer_ms >= 4000.0 {
                             self.wander_timer_ms = 0.0;
-                            // Random point anywhere on screen (with safety padding)
                             let rx = 50.0 + (js_sys::Math::random() as f32) * (w - 100.0);
                             let ry = 100.0 + (js_sys::Math::random() as f32) * (h - 150.0);
                             self.homer_target_x = rx;
@@ -209,12 +224,75 @@ impl Game {
                     }
                 }
 
-                // Advance animation
-                self.homer_state.update(delta_ms, &self.animations);
+                // Handle active job timers for Bart
+                let mut completed_bart_job = None;
+                if let Some(ref job) = self.bart_current_job {
+                    self.bart_job_timer_ms += delta_ms;
+                    self.bart_state.set_animation(job);
 
-                // Draw ground (tiled grass texture covering full screen)
+                    if self.bart_job_timer_ms >= self.bart_job_duration_ms {
+                        completed_bart_job = Some(job.clone());
+                    }
+                }
+
+                if let Some(job) = completed_bart_job {
+                    self.bart_current_job = None;
+                    self.bart_state.set_animation("idle");
+                    
+                    if job == "skateboard" {
+                        self.cash += 60;
+                    } else if job == "slingshot" {
+                        self.cash += 120;
+                    } else if job == "play_simulator" {
+                        self.cash += 180;
+                    }
+                    
+                    trigger_reward_toast(&job, self.cash);
+                } else if self.bart_current_job.is_none() {
+                    let dx = self.bart_target_x - self.bart_x;
+                    let dy = self.bart_target_y - self.bart_y;
+                    let dist = (dx * dx + dy * dy).sqrt();
+
+                    if dist > 5.0 {
+                        let speed = 140.0; // Bart walks/skates a bit faster
+                        let step = speed * (delta_ms as f32 / 1000.0);
+                        let ratio = step.min(dist) / dist;
+                        self.bart_x += dx * ratio;
+                        self.bart_y += dy * ratio;
+
+                        if dx.abs() > 2.0 {
+                            self.bart_facing_left = dx < 0.0;
+                        }
+
+                        if dy.abs() > dx.abs() {
+                            if dy > 0.0 {
+                                self.bart_state.set_animation("walk_front");
+                            } else {
+                                self.bart_state.set_animation("walk_back");
+                            }
+                        } else {
+                            self.bart_state.set_animation("walk_front");
+                        }
+                    } else {
+                        self.bart_state.set_animation("idle");
+
+                        self.bart_wander_timer_ms += delta_ms;
+                        if self.bart_wander_timer_ms >= 5000.0 {
+                            self.bart_wander_timer_ms = 0.0;
+                            let rx = 50.0 + (js_sys::Math::random() as f32) * (w - 100.0);
+                            let ry = 100.0 + (js_sys::Math::random() as f32) * (h - 150.0);
+                            self.bart_target_x = rx;
+                            self.bart_target_y = ry;
+                        }
+                    }
+                }
+
+                // Advance animations
+                self.homer_state.update(delta_ms, &self.animations);
+                self.bart_state.update(delta_ms, &self.bart_animations);
+
+                // Draw ground
                 if let Some(tex) = self.textures.get("grass_tile") {
-                    // Repeat every 64 pixels
                     self.renderer.draw_sprite_tiled(&self.gl, tex, 0.0, 0.0, w, h, 64.0, 64.0);
                 } else {
                     self.renderer.draw_rect(&self.gl, 0.0, 0.0, w, h, 0.34, 0.70, 0.24, 1.0);
@@ -224,6 +302,13 @@ impl Game {
                 if let Some(tex_key) = self.homer_state.current_texture_key(&self.animations) {
                     if let Some(tex) = self.textures.get(tex_key) {
                         self.renderer.draw_sprite(&self.gl, tex, self.homer_x, self.homer_y, self.homer_scale, self.homer_facing_left);
+                    }
+                }
+
+                // Draw Bart
+                if let Some(tex_key) = self.bart_state.current_texture_key(&self.bart_animations) {
+                    if let Some(tex) = self.textures.get(tex_key) {
+                        self.renderer.draw_sprite(&self.gl, tex, self.bart_x, self.bart_y, self.bart_scale, self.bart_facing_left);
                     }
                 }
             }
@@ -252,6 +337,36 @@ impl Game {
         self.homer_current_job = Some(job_name.to_string());
         self.homer_job_timer_ms = 0.0;
         self.homer_job_duration_ms = duration_seconds * 1000.0;
+    }
+
+    /// Check if a click point is within Bart's bounding box
+    pub fn is_bart_clicked(&self, click_x: f32, click_y: f32) -> bool {
+        if self.state != GameState::Playing || self.bart_current_job.is_some() {
+            return false;
+        }
+
+        let bart_w = 120.0 * self.bart_scale;
+        let bart_h = 240.0 * self.bart_scale;
+
+        click_x >= (self.bart_x - bart_w * 0.5) && click_x <= (self.bart_x + bart_w * 0.5) &&
+        click_y >= (self.bart_y - bart_h) && click_y <= self.bart_y
+    }
+
+    /// Start a task chore for Bart
+    pub fn assign_bart_job(&mut self, job_name: &str, duration_seconds: f64) {
+        self.bart_current_job = Some(job_name.to_string());
+        self.bart_job_timer_ms = 0.0;
+        self.bart_job_duration_ms = duration_seconds * 1000.0;
+    }
+
+    /// Return screen coordinates of Bart so menu popup can align to him
+    pub fn get_bart_screen_pos(&self) -> Vec<f32> {
+        let dpr = web_sys::window().unwrap().device_pixel_ratio() as f32;
+        let bart_h = 240.0 * self.bart_scale;
+        vec![
+            self.bart_x / dpr,
+            (self.bart_y - bart_h) / dpr
+        ]
     }
 
     /// Return screen coordinates of Homer so menu popup can align to him

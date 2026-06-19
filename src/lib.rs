@@ -33,3 +33,15 @@ pub fn homer_texture_manifest() -> String {
         .collect();
     format!("[{}]", entries.join(","))
 }
+
+/// Get the list of texture paths Bart needs, as JSON
+#[wasm_bindgen]
+pub fn bart_texture_manifest() -> String {
+    let paths = sprite::bart_texture_paths();
+    let entries: Vec<String> = paths
+        .iter()
+        .map(|(key, path)| format!(r#"{{"key":"{}","path":"{}"}}"#, key, path))
+        .collect();
+    format!("[{}]", entries.join(","))
+}
+

@@ -207,8 +207,8 @@ pub fn homer_texture_paths() -> Vec<(String, String)> {
     }
 
     // Menu Assets
-    paths.push(("menu_bg".into(), "assets/Menu/main_menu_background_upscaled.png".into()));
-    paths.push(("menu_fg".into(), "assets/Menu/menu_foreground_upscaled.png".into()));
+    paths.push(("menu_bg".into(), "assets/Menu/main_menu_background.webp".into()));
+
 
     // Job Assets - Clean Up
     for i in 1..=6 {
@@ -239,3 +239,121 @@ pub fn homer_texture_paths() -> Vec<(String, String)> {
 
     paths
 }
+
+/// Build Bart's animation definitions
+pub fn bart_animations() -> HashMap<String, Animation> {
+    let mut anims = HashMap::new();
+
+    anims.insert("idle".to_string(), Animation {
+        name: "idle".to_string(),
+        frames: vec![
+            Frame { texture_key: "bart_idle_1".to_string(), duration_ms: 2000.0 },
+            Frame { texture_key: "bart_idle_blink_1".to_string(), duration_ms: 100.0 },
+            Frame { texture_key: "bart_idle_blink_2".to_string(), duration_ms: 100.0 },
+            Frame { texture_key: "bart_idle_1".to_string(), duration_ms: 3000.0 },
+            Frame { texture_key: "bart_idle_blink_1".to_string(), duration_ms: 100.0 },
+            Frame { texture_key: "bart_idle_blink_2".to_string(), duration_ms: 100.0 },
+        ],
+        looping: true,
+    });
+
+    anims.insert("walk_front".to_string(), Animation {
+        name: "walk_front".to_string(),
+        frames: (1..=4).map(|i| Frame {
+            texture_key: format!("bart_front_walk_{i}"),
+            duration_ms: 150.0,
+        }).collect(),
+        looping: true,
+    });
+
+    anims.insert("walk_back".to_string(), Animation {
+        name: "walk_back".to_string(),
+        frames: (1..=4).map(|i| Frame {
+            texture_key: format!("bart_back_walk_{i}"),
+            duration_ms: 150.0,
+        }).collect(),
+        looping: true,
+    });
+
+    anims.insert("skateboard".to_string(), Animation {
+        name: "skateboard".to_string(),
+        frames: (1..=6).map(|i| Frame {
+            texture_key: format!("bart_skateboard_{i}"),
+            duration_ms: 120.0,
+        }).collect(),
+        looping: true,
+    });
+
+    anims.insert("slingshot".to_string(), Animation {
+        name: "slingshot".to_string(),
+        frames: (1..=15).map(|i| Frame {
+            texture_key: format!("bart_slingshot_{i}"),
+            duration_ms: 100.0,
+        }).collect(),
+        looping: true,
+    });
+
+    anims.insert("play_simulator".to_string(), Animation {
+        name: "play_simulator".to_string(),
+        frames: (1..=18).map(|i| Frame {
+            texture_key: format!("bart_play_simulator_{i}"),
+            duration_ms: 120.0,
+        }).collect(),
+        looping: true,
+    });
+
+    anims
+}
+
+/// Map of texture key -> asset file path (relative to web root) for Bart
+pub fn bart_texture_paths() -> Vec<(String, String)> {
+    let mut paths = vec![];
+
+    // Idle
+    paths.push(("bart_idle_1".into(), "assets/Characters/Bart/Idle/bart_idle_image_1.png".into()));
+    paths.push(("bart_idle_blink_1".into(), "assets/Characters/Bart/Idle/bart_idle_blink_image_1.png".into()));
+    paths.push(("bart_idle_blink_2".into(), "assets/Characters/Bart/Idle/bart_idle_blink_image_2.png".into()));
+
+    // Walk front
+    for i in 1..=4 {
+        paths.push((
+            format!("bart_front_walk_{i}"),
+            format!("assets/Characters/Bart/Walk/bart_front_walk_image_{i}.png"),
+        ));
+    }
+
+    // Walk back
+    for i in 1..=4 {
+        paths.push((
+            format!("bart_back_walk_{i}"),
+            format!("assets/Characters/Bart/Walk/bart_back_walk_image_{i}.png"),
+        ));
+    }
+
+    // Job Assets - Skateboard
+    for i in 1..=6 {
+        paths.push((
+            format!("bart_skateboard_{i}"),
+            format!("assets/Characters/Bart/Skateboard/bart_skateboarding_front_image_{i}.png"),
+        ));
+    }
+
+    // Job Assets - Slingshot
+    for i in 1..=15 {
+        paths.push((
+            format!("bart_slingshot_{i}"),
+            format!("assets/Characters/Bart/Slingshot/bart_walk_slingshot_shoot_slingshot_image_{i}.png"),
+        ));
+    }
+
+    // Job Assets - Play Yard Work Simulator
+    for i in 1..=18 {
+        paths.push((
+            format!("bart_play_simulator_{i}"),
+            format!("assets/Characters/Bart/Play Yard Work Simulator/bart_do_virtual_job_active_2_image_{i}.png"),
+        ));
+    }
+
+    paths
+}
+
